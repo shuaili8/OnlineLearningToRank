@@ -36,8 +36,8 @@ class CascadeLinUCB(object):
 			if x.sum() > 0:
 				first_click = np.flatnonzero(x)[0]
 
-			A = self.items[At[:first_click]]
-			x = x[:first_click]
+			A = self.items[At[:first_click+1]]
+			x = x[:first_click+1]
 			self.S += np.matmul(A.T, A)
 			self.b += np.dot(x, A)
 
