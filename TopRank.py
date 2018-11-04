@@ -6,9 +6,8 @@ class Partition:
 		self.k = k
 		self.m = m
 
-class TopRank(object):
+class TopRank:
 	def __init__(self, K, env, T):
-		super(TopRank, self).__init__()
 		self.K = K
 		self.env = env
 		self.T = T
@@ -22,7 +21,7 @@ class TopRank(object):
 		
 		self.rewards = np.zeros(self.T)
 
-	def criterion(self, S, N):
+	def _criterion(self, S, N):
 		c = 3.43
 		return S >= np.sqrt(2 * N * np.log(c * np.sqrt(self.T) * np.sqrt(N)))
 
@@ -55,10 +54,10 @@ class TopRank(object):
 						b = partition.items[j]
 
 					if self.N[a, b] > 0:
-						if self.criterion(self.S[a, b], self.N[a, b]): # a is better than b
+						if self._criterion(self.S[a, b], self.N[a, b]): # a is better than b
 							self.G[a, b] = True
 							updateG = True
-						elif self.criterion(self.S[b, a], self.N[b, a]):
+						elif self._criterion(self.S[b, a], self.N[b, a]):
 							self.G[b, a] = True
 							updateG = True
 			
@@ -68,9 +67,9 @@ class TopRank(object):
 				k = 0
 				remain_items = set(np.arange(self.L))
 				while k < self.K:
-					bad_items = set(np.flatnonzero(np.sum(self.G[np.asarray(remain_items),:], axis=0)))
+					bad_items = set(np.flatnonzero(np.sum(self.G[np.asarray(list(remain_items)),:], axis=0)))
 					good_items = remain_items - bad_items
-					self.partition[c] = Partition(items=list(good_items),k=k,m=min(len(good_items), self.K-k))
+					self.partitions[c] = Partition(items=list(good_items),k=k,m=min(len(good_items), self.K-k))
 
 					k += len(good_items)
 					remain_items = remain_items.intersection(bad_items)
