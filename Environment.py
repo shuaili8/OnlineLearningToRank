@@ -2,15 +2,18 @@ import numpy as np
 from sklearn.preprocessing import normalize
 
 class Environment(object):
-	def __init__(self, L, d, K, synthetic=True):
+	def __init__(self, L, d, synthetic=True, tabular=False):
 		super(Environment, self).__init__()
 		if synthetic:
-			self.items = self.genitems(L, d)
-			theta = self.genitems(1, d)[0]
-			self.means = np.dot(self.items, theta)
-			self.bestmeans = np.sort(self.means)[::-1][:K]
-
-		self.K = K
+			if tabular:
+				self.items = np.eye(L)
+				self.means = np.random.rand(L)
+			else:
+				self.items = self.genitems(L, d)
+				theta = self.genitems(1, d)[0]
+				self.means = np.dot(self.items, theta)
+			
+		# self.K = K
 
 	def genitems(self, L, d):
 		# Return an array of L * d, where each row is a d-dim feature vector with last entry of 1/sqrt{2}
@@ -19,9 +22,9 @@ class Environment(object):
 		return result
 
 class CasEnv(Environment):
-	def __init__(self, L, d, K):
-		super(CasEnv, self).__init__(L, d, K)
-		self.breward = self.or_func(self.bestmeans)
+	def __init__(self, L, d, tabular=False):
+		super(CasEnv, self).__init__(L, d, synthetic=True,tabular=tabular)
+		# self.breward = self.or_func(self.bestmeans)
 
 	def or_func(self, v):
 		return 1 - np.prod(1 - v)
@@ -35,15 +38,26 @@ class CasEnv(Environment):
 
 		return x, self.or_func(means)
 
+	def get_best_reward(self, K):
+		bestmeans = np.sort(self.means)[::-1][:K]
+		breward = self.or_func(bestmeans)
+		return breward
+
 class PbmEnv(Environment):
-	def __init__(self, L, d, K, beta):
-		super(PbmEnv, self).__init__(L, d, K)
+	def __init__(self, L, d, beta, tabular=False):
+		super(PbmEnv, self).__init__(L, d, synthetic=True, tabular=tabular)
 		self.beta = beta
-		self.breward = np.dot(self.beta, self.bestmeans)
+		# self.breward = np.dot(self.beta, self.bestmeans)
 
 	def feedback(self, A):
-		means = self.means[A] * self.beta
+		means = self.means[A] * self.beta[:len(A)]
 		return np.random.binomial(1, means), sum(means)
+
+	def get_best_reward(self, K):
+		beta = self.beta[:K]
+		bestmeans = np.sort(self.means)[::-1][:K]
+		breward = np.dot(beta, bestmeans)
+		return breward
 
 from ExtractFeatures import ExtractFeatures
 
