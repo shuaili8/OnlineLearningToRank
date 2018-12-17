@@ -1,4 +1,5 @@
 import numpy as np
+from utlis import is_power2
 
 class Partition:
 	def __init__(self, items, k, m):
@@ -25,7 +26,7 @@ class TopRank:
 		c = 3.43
 		return S >= np.sqrt(2 * N * np.log(c * np.sqrt(self.T) * np.sqrt(N)))
 
-	def update(self, t, At, x, r, interval=1000):
+	def update(self, t, At, x, r):
 		self.rewards[t] = r
 
 		clicks = np.zeros(self.L)
@@ -44,7 +45,7 @@ class TopRank:
 					self.S[b, a] -= x
 					self.N[b, a] += np.abs(x)
 
-		if t % interval == 0:
+		if True:#t % 2000 == 0  or is_power2(t):
 			updateG = False
 			for c in self.partitions:
 				partition = self.partitions[c]
@@ -53,13 +54,13 @@ class TopRank:
 					for j in range(i+1, len(partition.items)):
 						b = partition.items[j]
 
-					if self.N[a, b] > 0:
-						if self._criterion(self.S[a, b], self.N[a, b]): # a is better than b
-							self.G[a, b] = True
-							updateG = True
-						elif self._criterion(self.S[b, a], self.N[b, a]):
-							self.G[b, a] = True
-							updateG = True
+						if self.N[a, b] > 0:
+							if self._criterion(self.S[a, b], self.N[a, b]): # a is better than b
+								self.G[a, b] = True
+								updateG = True
+							elif self._criterion(self.S[b, a], self.N[b, a]):
+								self.G[b, a] = True
+								updateG = True
 			
 			if updateG:
 				self.partitions = {}
