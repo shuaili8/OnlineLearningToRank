@@ -4,14 +4,7 @@ from sklearn.preprocessing import normalize
 import time
 
 def ExtractFeatures(num_users, num_users_in_train, num_items, d, filename):
-	# seed = int(time.time() * 100) % 339
-	# print("Seed = %d" % seed)
-	# np.random.seed(seed)
-
-	# with open(filename, 'rb') as f:
-	# 	X = pickle.load(f)
 	X = np.load(filename)
-	# np.save('ml_1k_1k.npy', X)
 
 	Nx = np.shape(X)[0]
 	Ny = np.shape(X)[1]
@@ -28,11 +21,17 @@ def ExtractFeatures(num_users, num_users_in_train, num_items, d, filename):
 	vt = normalize(vt, axis = 0, norm = 'l2')
 
 	V = np.concatenate((vt, np.ones((1, num_items))), axis = 0) / np.sqrt(2)
-
 	test_matrix = X[num_users_in_train:, :][:, :num_items]
-	return np.transpose(V, (1, 0)), test_matrix
+
+	A = np.matmul(V, np.transpose(V, (1, 0)))
+	b = np.dot(V, np.sum(test_matrix, axis=0)) / num_users
+	theta = np.dot(np.linalg.pinv(A), b)
+
+	V = np.transpose(V, (1, 0))
+
+	return V, theta
 
 	# np.savez('M_'+str(num_items)+'_'+str(d)+'_'+str(seed), np.transpose(V, (1, 0)), test_matrix)
 # 'movielens_best_pool_1k_1k.pickle'
-# filename = 'ml_1k_1k.npy'
-# main(num_users=900,num_users_in_train=100,num_items=1000,d=40,filename=filename)
+# filename = 'yelp_1100user_1000item.npy' # 'ml_1k_1k.npy'
+# ExtractFeatures(num_users=900,num_users_in_train=100,num_items=1000,d=10,filename=filename)

@@ -1,17 +1,23 @@
 import numpy as np
 from sklearn.preprocessing import normalize
 
+from ExtractFeatures import ExtractFeatures
+
 class Environment(object):
-	def __init__(self, L, d, synthetic=True, tabular=False):
+	def __init__(self, L, d, synthetic=True, tabular=False, filename=''):
 		super(Environment, self).__init__()
 		if synthetic:
 			if tabular:
 				self.items = np.eye(L)
-				self.means = np.random.rand(L)
+				# self.means = np.random.rand(L)
+				self.means = np.arange(1,0,-1/L)
 			else:
 				self.items = self.genitems(L, d)
 				theta = self.genitems(1, d)[0]
 				self.means = np.dot(self.items, theta)
+		else:
+			self.items, theta = ExtractFeatures(num_users=1000, num_users_in_train=100, num_items=L, d=d, filename=filename)
+			self.means = np.dot(self.items, theta)
 			
 		# self.K = K
 
@@ -22,8 +28,8 @@ class Environment(object):
 		return result
 
 class CasEnv(Environment):
-	def __init__(self, L, d, tabular=False):
-		super(CasEnv, self).__init__(L, d, synthetic=True,tabular=tabular)
+	def __init__(self, L, d, synthetic=True, tabular=False, filename=''):
+		super(CasEnv, self).__init__(L, d, synthetic=True,tabular=tabular,filename=filename)
 		# self.breward = self.or_func(self.bestmeans)
 
 	def or_func(self, v):
@@ -44,8 +50,8 @@ class CasEnv(Environment):
 		return breward
 
 class PbmEnv(Environment):
-	def __init__(self, L, d, beta, tabular=False):
-		super(PbmEnv, self).__init__(L, d, synthetic=True, tabular=tabular)
+	def __init__(self, L, d, beta, synthetic=True, tabular=False, filename=''):
+		super(PbmEnv, self).__init__(L, d, synthetic=True, tabular=tabular, filename=filename)
 		self.beta = beta
 		# self.breward = np.dot(self.beta, self.bestmeans)
 
@@ -59,16 +65,17 @@ class PbmEnv(Environment):
 		breward = np.dot(beta, bestmeans)
 		return breward
 
-from ExtractFeatures import ExtractFeatures
+# from ExtractFeatures import ExtractFeatures
 
-class RealDataEnv(Environment):
-	def __init__(self, L, d, K, filename='ml_1k_1k.npy'):
-		super(RealDataEnv, self).__init__(L, d, K, synthetic=False)
-		self.items, self.fbmat = ExtractFeatures(num_users=900, num_users_in_train=100, num_items=L, d=d, filename=filename)
+# class RealDataEnv(Environment):
+# 	def __init__(self, L, d, K, filename='yelp_1100user_1000item.npy'):  #'yelp_1100user_1000item.npy'
+# 		super(RealDataEnv, self).__init__(L, d, K, synthetic=False)
+# 		self.items, theta = ExtractFeatures(num_users=1000, num_users_in_train=100, num_items=L, d=d, filename=filename)
+# 		self.means = np.dot(self.items, theta)
 
-	def feedback(self, A):
-		ui = np.random.choice(900)
-		r = self.fbmat[ui,A]
-		return r, sum(r)
+# 	def feedback(self, A):
+# 		ui = np.random.choice(900)
+# 		r = self.fbmat[ui,A]
+# 		return r, sum(r)
 		
 		
