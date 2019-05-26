@@ -9,8 +9,8 @@ class Environment(object):
         if synthetic:
             if tabular:
                 self.items = np.eye(L)
-                # self.means = np.random.rand(L)
-                self.means = np.arange(1,0,-1/L)
+                self.means = np.random.rand(L)
+                # self.means = np.arange(1,0,-1/L)
             else:
                 self.items = self.genitems(L, d)
                 theta = self.genitems(1, d)[0]
@@ -18,8 +18,6 @@ class Environment(object):
         else:
             self.items, theta = ExtractFeatures(num_users=1000, num_users_in_train=100, num_items=L, d=d, filename=filename)
             self.means = np.dot(self.items, theta)
-            
-        # self.K = K
 
     def genitems(self, L, d):
         # Return an array of L * d, where each row is a d-dim feature vector with last entry of 1/sqrt{2}
@@ -31,7 +29,7 @@ class CasEnv(Environment):
     def __init__(self, L, d, synthetic=True, tabular=False, filename=''):
         super(CasEnv, self).__init__(L, d, synthetic=True,tabular=tabular,filename=filename)
 
-    def or_func(self, v):
+    def _or_func(self, v):
         return 1 - np.prod(1 - v)
     
     def feedback(self, A):
@@ -41,11 +39,11 @@ class CasEnv(Environment):
             first_click = np.flatnonzero(x)[0]
             x[first_click + 1 : ] = 0
 
-        return x, self.or_func(means)
+        return x, self._or_func(means)
 
     def get_best_reward(self, K):
         bestmeans = np.sort(self.means)[::-1][:K]
-        breward = self.or_func(bestmeans)
+        breward = self._or_func(bestmeans)
         return breward
 
 class PbmEnv(Environment):
@@ -63,17 +61,5 @@ class PbmEnv(Environment):
         breward = np.dot(beta, bestmeans)
         return breward
 
-# from ExtractFeatures import ExtractFeatures
-
-# class RealDataEnv(Environment):
-#     def __init__(self, L, d, K, filename='yelp_1100user_1000item.npy'):  #'yelp_1100user_1000item.npy'
-#         super(RealDataEnv, self).__init__(L, d, K, synthetic=False)
-#         self.items, theta = ExtractFeatures(num_users=1000, num_users_in_train=100, num_items=L, d=d, filename=filename)
-#         self.means = np.dot(self.items, theta)
-
-#     def feedback(self, A):
-#         ui = np.random.choice(900)
-#         r = self.fbmat[ui,A]
-#         return r, sum(r)
         
         

@@ -92,7 +92,6 @@ class RecurRank(object):
 
             x, r = self.env.feedback(self.recommend_list)
             self.rewards[tau] = r
-            # self.brwards[tau] = br
 
             for c in self.parts:
                 k = self.parts[c].k
@@ -109,7 +108,6 @@ class RecurRank(object):
                     theta = np.dot(np.linalg.pinv(Sc), bc)
 
                     sorted_items = sorted([(a, np.dot(theta, a)) for a in self.parts[c].items], key = lambda x:x[1], reverse = True)
-                    # print(sorted_items)
 
                     K1 = self.parts[c].k
                     M = self.parts[c].m
@@ -125,7 +123,6 @@ class RecurRank(object):
                             break
 
                     self.parts[c] = Part(l=l+1, items=[x[0] for x in sorted_items],k=K1, m=M, K=self.K, T=self.T)
-
 
                     # check for split
                     lastk = 0
